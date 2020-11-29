@@ -91,6 +91,29 @@ public class Solution {
         typedSchema.add(new Pair("CHECK","(credit_points >= 0)"));
         createTable("Student", typedSchema);
         typedSchema.clear();
+
+        typedSchema.add(new Pair("student_id","integer NOT NULL"));
+        typedSchema.add(new Pair("course_id","integer NOT NULL"));
+        typedSchema.add(new Pair("semester","integer NOT NULL"));
+        typedSchema.add(new Pair("PRIMARY KEY","(course_id, student_id)"));
+        typedSchema.add(new Pair("FOREIGN KEY","(student_id) REFERENCES " + "Student" + "(student_id) ON DELETE CASCADE ON UPDATE CASCADE"));
+        typedSchema.add(new Pair("FOREIGN KEY","(course_id) REFERENCES " + "Test" +"(course_id) ON DELETE CASCADE ON UPDATE CASCADE"));
+        typedSchema.add(new Pair("CHECK","(course_id > 0)"));
+        typedSchema.add(new Pair("CHECK","(student_id > 0)"));
+        createTable("Tested", typedSchema);
+        typedSchema.clear();
+
+        typedSchema.add(new Pair("supervisor_id","integer NOT NULL"));
+        typedSchema.add(new Pair("course_id","integer NOT NULL"));
+        typedSchema.add(new Pair("semester","integer NOT NULL"));
+        typedSchema.add(new Pair("PRIMARY KEY","(course_id, supervisor_id)"));
+        typedSchema.add(new Pair("FOREIGN KEY","(supervisor_id) REFERENCES " + "Supervisor" + "(supervisor_id) ON DELETE CASCADE ON UPDATE CASCADE"));
+        typedSchema.add(new Pair("FOREIGN KEY","(course_id) REFERENCES " + "Test" +"(course_id) ON DELETE CASCADE ON UPDATE CASCADE"));
+        typedSchema.add(new Pair("CHECK","(semester > 0)"));
+        typedSchema.add(new Pair("CHECK","(course_id > 0)"));
+        typedSchema.add(new Pair("CHECK","(supervisor_id > 0)"));
+        createTable("Supervised", typedSchema);
+        typedSchema.clear();
     }
 
     public static void clearTables() {
@@ -526,19 +549,155 @@ public class Solution {
     }
 
     public static ReturnValue studentAttendTest(Integer studentID, Integer testID, Integer semester) {
-        return OK;
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("INSERT INTO " + "Tested" +
+                    " VALUES (?, ?, ?)");
+            pstmt.setInt(1,studentID);
+            pstmt.setInt(2, testID);
+            pstmt.setInt(3, semester);
+            pstmt.execute();
+            return OK;
+        } catch (SQLException e) {
+            //e.printStackTrace();
+            Integer errorCode = Integer.valueOf(e.getSQLState());
+            if(errorCode == PostgreSQLErrorCodes.CHECK_VIOLATION.getValue()
+                    || errorCode == PostgreSQLErrorCodes.NOT_NULL_VIOLATION.getValue())
+                return BAD_PARAMS;
+            if(errorCode == PostgreSQLErrorCodes.FOREIGN_KEY_VIOLATION.getValue())
+                return NOT_EXISTS;
+            if(errorCode == PostgreSQLErrorCodes.UNIQUE_VIOLATION.getValue())
+                return ALREADY_EXISTS;
+            return ERROR;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+//                return ERROR;
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+//                return ERROR;
+            }
+        }
     }
 
     public static ReturnValue studentWaiveTest(Integer studentID, Integer testID, Integer semester) {
-        return OK;
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement(
+                    "DELETE FROM " + "Tested" +
+                            " WHERE student_id = ? AND course_id = ? AND semester = ?");
+            pstmt.setInt(1,studentID);
+            pstmt.setInt(2,testID);
+            pstmt.setInt(2,semester);
+
+            int affectedRows = pstmt.executeUpdate();
+            if (affectedRows == 1)
+                return OK;
+            else if(affectedRows == 0)
+                return NOT_EXISTS;
+            return ERROR;
+        } catch (SQLException e) {
+            //e.printStackTrace();
+            return ERROR;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+//                return ERROR;
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+//                return ERROR;
+            }
+        }
     }
 
     public static ReturnValue supervisorOverseeTest(Integer supervisorID, Integer testID, Integer semester) {
-       return OK;
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("INSERT INTO " + "Supervised" +
+                    " VALUES (?, ?, ?)");
+            pstmt.setInt(1,supervisorID);
+            pstmt.setInt(2, testID);
+            pstmt.setInt(3, semester);
+            pstmt.execute();
+            return OK;
+        } catch (SQLException e) {
+            //e.printStackTrace();
+            Integer errorCode = Integer.valueOf(e.getSQLState());
+            if(errorCode == PostgreSQLErrorCodes.CHECK_VIOLATION.getValue()
+                    || errorCode == PostgreSQLErrorCodes.NOT_NULL_VIOLATION.getValue())
+                return BAD_PARAMS;
+            if(errorCode == PostgreSQLErrorCodes.FOREIGN_KEY_VIOLATION.getValue())
+                return NOT_EXISTS;
+            if(errorCode == PostgreSQLErrorCodes.UNIQUE_VIOLATION.getValue())
+                return ALREADY_EXISTS;
+            return ERROR;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+//                return ERROR;
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+//                return ERROR;
+            }
+        }
     }
 
     public static ReturnValue supervisorStopsOverseeTest(Integer supervisorID, Integer testID, Integer semester) {
-       return OK;
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement(
+                    "DELETE FROM " + "Supervised" +
+                            " WHERE supervisor_id = ? AND course_id = ? AND semester = ?");
+            pstmt.setInt(1,supervisorID);
+            pstmt.setInt(2,testID);
+            pstmt.setInt(2,semester);
+
+            int affectedRows = pstmt.executeUpdate();
+            if (affectedRows == 1)
+                return OK;
+            else if(affectedRows == 0)
+                return NOT_EXISTS;
+            return ERROR;
+        } catch (SQLException e) {
+            //e.printStackTrace();
+            return ERROR;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+//                return ERROR;
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+//                return ERROR;
+            }
+        }
     }
 
     public static Float averageTestCost() {
