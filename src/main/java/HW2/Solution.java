@@ -181,39 +181,348 @@ public class Solution {
     }
 
     public static ReturnValue addTest(Test test) {
-       return OK;
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("INSERT INTO " + "Test" +
+                    " VALUES (?, ?, ?, ?, ?, ?)");
+            pstmt.setInt(1,test.getId());
+            pstmt.setInt(2, test.getSemester());
+            pstmt.setInt(3, test.getTime());
+            pstmt.setInt(4, test.getRoom());
+            pstmt.setInt(5, test.getDay());
+            pstmt.setInt(6, test.getCreditPoints());
+            pstmt.execute();
+            return OK;
+        } catch (SQLException e) {
+            //e.printStackTrace();
+            Integer errorCode = Integer.valueOf(e.getSQLState());
+            if(errorCode == PostgreSQLErrorCodes.CHECK_VIOLATION.getValue()
+                    || errorCode == PostgreSQLErrorCodes.NOT_NULL_VIOLATION.getValue()
+                    || errorCode == PostgreSQLErrorCodes.FOREIGN_KEY_VIOLATION.getValue())
+                return BAD_PARAMS;
+            if(errorCode == PostgreSQLErrorCodes.UNIQUE_VIOLATION.getValue())
+                return ALREADY_EXISTS;
+            return ERROR;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+//                return ERROR;
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+//                return ERROR;
+            }
+        }
     }
 
     public static Test getTestProfile(Integer testID, Integer semester) {
-        return new Test();
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("SELECT * FROM " + "Test" + " WHERE course_id = ? AND semester = ? ");
+            pstmt.setInt(1,testID);
+            pstmt.setInt(2,semester);
+
+            ResultSet results = pstmt.executeQuery();
+            if(results.next()) {
+                Test t = new Test();
+                t.setId(results.getInt(1));
+                t.setSemester(results.getInt(2));
+                t.setTime(results.getInt(3));
+                t.setRoom(results.getInt(4));
+                t.setDay(results.getInt(5));
+                t.setCreditPoints(results.getInt(6));
+                results.close();
+                return t;
+            }
+
+            results.close();
+            return Test.badTest();
+
+        } catch (SQLException e) {
+            //e.printStackTrace();
+            return Test.badTest();
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
     }
 
     public static ReturnValue deleteTest(Integer testID, Integer semester) {
-		return OK;
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement(
+                    "DELETE FROM " + "Test" +
+                            " WHERE course_id = ? AND semester = ?");
+            pstmt.setInt(1,testID);
+            pstmt.setInt(2,semester);
+
+            int affectedRows = pstmt.executeUpdate();
+            if (affectedRows == 1)
+                return OK;
+            else if(affectedRows == 0)
+                return NOT_EXISTS;
+            return ERROR;
+        } catch (SQLException e) {
+            //e.printStackTrace()();
+            return ERROR;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+//                return ERROR;
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+//                return ERROR;
+            }
+        }
     }
 
     public static ReturnValue addStudent(Student student) {
-        return OK;
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("INSERT INTO " + "Student" +
+                    " VALUES (?, ?, ?, ?)");
+            pstmt.setInt(1,student.getId());
+            pstmt.setString(2, student.getName());
+            pstmt.setString(3, student.getFaculty());
+            pstmt.setInt(4, student.getCreditPoints());
+            pstmt.execute();
+            return OK;
+        } catch (SQLException e) {
+            //e.printStackTrace();
+            Integer errorCode = Integer.valueOf(e.getSQLState());
+            if(errorCode == PostgreSQLErrorCodes.CHECK_VIOLATION.getValue()
+                    || errorCode == PostgreSQLErrorCodes.NOT_NULL_VIOLATION.getValue()
+                    || errorCode == PostgreSQLErrorCodes.FOREIGN_KEY_VIOLATION.getValue())
+                return BAD_PARAMS;
+            if(errorCode == PostgreSQLErrorCodes.UNIQUE_VIOLATION.getValue())
+                return ALREADY_EXISTS;
+            return ERROR;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+//                return ERROR;
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+//                return ERROR;
+            }
+        }
     }
 
     public static Student getStudentProfile(Integer studentID) {
-        return new Student();
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("SELECT * FROM " + "Student" +
+                    " WHERE student_Id = ?");
+            pstmt.setInt(1,studentID);
+
+            ResultSet results = pstmt.executeQuery();
+            if(results.next()) {
+                Student stu = new Student();
+                stu.setId(results.getInt(1));
+                stu.setName(results.getString(2));
+                stu.setFaculty(results.getString(3));
+                stu.setCreditPoints(results.getInt(4));
+                results.close();
+                return stu;
+            }
+
+            results.close();
+            return Student.badStudent();
+
+        } catch (SQLException e) {
+            //e.printStackTrace();
+            return Student.badStudent();
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
     }
 
     public static ReturnValue deleteStudent(Integer studentID) {
-        return OK;
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement(
+                    "DELETE FROM " + "Student" +
+                            " WHERE student_id = ? ");
+            pstmt.setInt(1,studentID);
+
+            int affectedRows = pstmt.executeUpdate();
+            if (affectedRows == 1)
+                return OK;
+            else if(affectedRows == 0)
+                return NOT_EXISTS;
+            return ERROR;
+        } catch (SQLException e) {
+            //e.printStackTrace()();
+            return ERROR;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+//                return ERROR;
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+//                return ERROR;
+            }
+        }
     }
 
     public static ReturnValue addSupervisor(Supervisor supervisor) {
-        return OK;
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("INSERT INTO " + "Supervisor" +
+                    " VALUES (?, ?, ?)");
+            pstmt.setInt(1,supervisor.getId());
+            pstmt.setString(2, supervisor.getName());
+            pstmt.setInt(3, supervisor.getSalary());
+            pstmt.execute();
+            return OK;
+        } catch (SQLException e) {
+            //e.printStackTrace();
+            Integer errorCode = Integer.valueOf(e.getSQLState());
+            if(errorCode == PostgreSQLErrorCodes.CHECK_VIOLATION.getValue()
+                    || errorCode == PostgreSQLErrorCodes.NOT_NULL_VIOLATION.getValue()
+                    || errorCode == PostgreSQLErrorCodes.FOREIGN_KEY_VIOLATION.getValue())
+                return BAD_PARAMS;
+            if(errorCode == PostgreSQLErrorCodes.UNIQUE_VIOLATION.getValue())
+                return ALREADY_EXISTS;
+            return ERROR;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+//                return ERROR;
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+//                return ERROR;
+            }
+        }
     }
 
     public static Supervisor getSupervisorProfile(Integer supervisorID) {
-        return new Supervisor();
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("SELECT * FROM " + "Supervisor" +
+                    " WHERE supervisor_Id = ?");
+            pstmt.setInt(1,supervisorID);
+
+            ResultSet results = pstmt.executeQuery();
+            if(results.next()) {
+                Supervisor sup = new Supervisor();
+                sup.setId(results.getInt(1));
+                sup.setName(results.getString(2));
+                sup.setSalary(results.getInt(3));
+                results.close();
+                return sup;
+            }
+
+            results.close();
+            return Supervisor.badSupervisor();
+
+        } catch (SQLException e) {
+            //e.printStackTrace();
+            return Supervisor.badSupervisor();
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
     }
 
     public static ReturnValue deleteSupervisor(Integer supervisorID) {
-        return OK;
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement(
+                    "DELETE FROM " + "Supervisor" +
+                            " WHERE supervisor_id = ? ");
+            pstmt.setInt(1,supervisorID);
+
+            int affectedRows = pstmt.executeUpdate();
+            if (affectedRows == 1)
+                return OK;
+            else if(affectedRows == 0)
+                return NOT_EXISTS;
+            return ERROR;
+        } catch (SQLException e) {
+            //e.printStackTrace()();
+            return ERROR;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+//                return ERROR;
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+//                return ERROR;
+            }
+        }
     }
 
     public static ReturnValue studentAttendTest(Integer studentID, Integer testID, Integer semester) {
