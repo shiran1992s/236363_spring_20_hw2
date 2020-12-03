@@ -20,14 +20,14 @@ import static HW2.business.ReturnValue.*;
 
 public class Solution {
 
-    private static void createTable(String name, ArrayList<Pair<String, String>> typedSchema) {
+    private static void createTable(String name, ArrayList<Pair<String, String>> schema) {
         Connection connection = DBConnector.getConnection();
         PreparedStatement pstmt = null;
 
         try {
             StringBuilder string_builder = new StringBuilder();
             string_builder.append("CREATE TABLE " + name + "\n" + "(\n");
-            for (Pair field : typedSchema)
+            for (Pair field : schema)
                 string_builder.append("    " + field.getKey() + " " + field.getValue() + ",\n");
             string_builder.deleteCharAt(string_builder.length()-2);             //delete last ","
             string_builder.append(")");
@@ -53,68 +53,78 @@ public class Solution {
 
 
     public static void createTables() {
-        InitialState.createInitialState();
-        //create your tables here
-        ArrayList<Pair<String, String>> typedSchema = new ArrayList<>();
-        typedSchema.add(new Pair("course_id","integer NOT NULL"));
-        typedSchema.add(new Pair("semester","integer NOT NULL"));
-        typedSchema.add(new Pair("time","integer NOT NULL"));
-        typedSchema.add(new Pair("room","integer NOT NULL"));
-        typedSchema.add(new Pair("day","integer NOT NULL"));
-        typedSchema.add(new Pair("credit_points","integer NOT NULL"));
-        typedSchema.add(new Pair("PRIMARY KEY","(course_id)"));
-        typedSchema.add(new Pair("UNIQUE","(course_id)"));
-        typedSchema.add(new Pair("UNIQUE","(semester)"));
-        typedSchema.add(new Pair("CHECK","(course_id > 0)"));
-        typedSchema.add(new Pair("CHECK","(room > 0)"));
-        typedSchema.add(new Pair("CHECK","(credit_points > 0)"));
-        createTable("Test", typedSchema);
-        typedSchema.clear();
+        try {
+            InitialState.createInitialState();
+            //create your tables here
+            ArrayList<Pair<String, String>> schema = new ArrayList<>();
+            schema.add(new Pair("course_id", "integer NOT NULL"));
+            schema.add(new Pair("semester", "integer NOT NULL"));
+            schema.add(new Pair("time", "integer NOT NULL"));
+            schema.add(new Pair("room", "integer NOT NULL"));
+            schema.add(new Pair("day", "integer NOT NULL"));
+            schema.add(new Pair("credit_points", "integer NOT NULL"));
+            schema.add(new Pair("PRIMARY KEY", "(course_id, semester)"));
+            schema.add(new Pair("UNIQUE", "(course_id ,semester)"));
+            schema.add(new Pair("CHECK", "(course_id > 0)"));
+            schema.add(new Pair("CHECK", "(room > 0)"));
+            schema.add(new Pair("CHECK", "(credit_points > 0)"));
+            createTable("Test", schema);
+            schema.clear();
 
-        typedSchema.add(new Pair("supervisor_id","integer NOT NULL"));
-        typedSchema.add(new Pair("supervisor_name","char[] NOT NULL"));
-        typedSchema.add(new Pair("salary","integer NOT NULL"));
-        typedSchema.add(new Pair("PRIMARY KEY","(supervisor_id)"));
-        typedSchema.add(new Pair("UNIQUE","(supervisor_id)"));
-        typedSchema.add(new Pair("CHECK","(supervisor_id > 0)"));
-        typedSchema.add(new Pair("CHECK","(salary >= 0)"));
-        createTable("Supervisor", typedSchema);
-        typedSchema.clear();
+            schema.add(new Pair("supervisor_id", "integer NOT NULL"));
+            schema.add(new Pair("supervisor_name", "text NOT NULL"));
+            schema.add(new Pair("salary", "integer NOT NULL"));
+            schema.add(new Pair("PRIMARY KEY", "(supervisor_id)"));
+            schema.add(new Pair("UNIQUE", "(supervisor_id)"));
+            schema.add(new Pair("CHECK", "(supervisor_id > 0)"));
+            schema.add(new Pair("CHECK", "(salary >= 0)"));
+            createTable("Supervisor", schema);
+            schema.clear();
 
-        typedSchema.add(new Pair("student_id","integer NOT NULL"));
-        typedSchema.add(new Pair("student_name","char[] NOT NULL"));
-        typedSchema.add(new Pair("faculty","char[] NOT NULL"));
-        typedSchema.add(new Pair("credit_points","integer NOT NULL"));
-        typedSchema.add(new Pair("PRIMARY KEY","(student_id)"));
-        typedSchema.add(new Pair("UNIQUE","(student_id)"));
-        typedSchema.add(new Pair("CHECK","(student_id > 0)"));
-        typedSchema.add(new Pair("CHECK","(credit_points >= 0)"));
-        createTable("Student", typedSchema);
-        typedSchema.clear();
+            schema.add(new Pair("student_id", "integer NOT NULL"));
+            schema.add(new Pair("student_name", "text NOT NULL"));
+            schema.add(new Pair("faculty", "text NOT NULL"));
+            schema.add(new Pair("credit_points", "integer NOT NULL"));
+            schema.add(new Pair("PRIMARY KEY", "(student_id)"));
+            schema.add(new Pair("UNIQUE", "(student_id)"));
+            schema.add(new Pair("CHECK", "(student_id > 0)"));
+            schema.add(new Pair("CHECK", "(credit_points >= 0)"));
+            createTable("Student", schema);
+            schema.clear();
 
-        typedSchema.add(new Pair("student_id","integer NOT NULL"));
-        typedSchema.add(new Pair("course_id","integer NOT NULL"));
-        typedSchema.add(new Pair("semester","integer NOT NULL"));
-        typedSchema.add(new Pair("PRIMARY KEY","(course_id, student_id)"));
-        typedSchema.add(new Pair("FOREIGN KEY","(student_id) REFERENCES " + "Student" + "(student_id) ON DELETE CASCADE ON UPDATE CASCADE"));
-        typedSchema.add(new Pair("FOREIGN KEY","(course_id) REFERENCES " + "Test" +"(course_id) ON DELETE CASCADE ON UPDATE CASCADE"));
-        typedSchema.add(new Pair("CHECK","(course_id > 0)"));
-        typedSchema.add(new Pair("CHECK","(student_id > 0)"));
-        createTable("Tested", typedSchema);
-        typedSchema.clear();
 
-        typedSchema.add(new Pair("supervisor_id","integer NOT NULL"));
-        typedSchema.add(new Pair("course_id","integer NOT NULL"));
-        typedSchema.add(new Pair("semester","integer NOT NULL"));
-        typedSchema.add(new Pair("PRIMARY KEY","(course_id, supervisor_id)"));
-        typedSchema.add(new Pair("FOREIGN KEY","(supervisor_id) REFERENCES " + "Supervisor" + "(supervisor_id) ON DELETE CASCADE ON UPDATE CASCADE"));
-        typedSchema.add(new Pair("FOREIGN KEY","(course_id) REFERENCES " + "Test" +"(course_id) ON DELETE CASCADE ON UPDATE CASCADE"));
-        typedSchema.add(new Pair("CHECK","(semester > 0)"));
-        typedSchema.add(new Pair("CHECK","(course_id > 0)"));
-        typedSchema.add(new Pair("CHECK","(supervisor_id > 0)"));
-        createTable("Supervised", typedSchema);
-        typedSchema.clear();
+            schema.add(new Pair("student_id","integer NOT NULL"));
+            schema.add(new Pair("course_id","integer NOT NULL"));
+            schema.add(new Pair("semester","integer NOT NULL"));
+            schema.add(new Pair("PRIMARY KEY","(student_id, course_id, semester)"));
+            schema.add(new Pair("FOREIGN KEY","(student_id) REFERENCES Student" + "(student_id) ON DELETE CASCADE ON UPDATE CASCADE"));
+            schema.add(new Pair("FOREIGN KEY","(course_id, semester) REFERENCES Test" + "(course_id, semester) ON DELETE CASCADE ON UPDATE CASCADE"));
+            schema.add(new Pair("CHECK", "(course_id > 0)"));
+            schema.add(new Pair("CHECK", "(student_id > 0)"));
+            schema.add(new Pair("CHECK", "(semester > 0)"));
+            createTable("Tested", schema);
+            schema.clear();
+
+            schema.add(new Pair("supervisor_id", "integer NOT NULL"));
+            schema.add(new Pair("course_id", "integer NOT NULL"));
+            schema.add(new Pair("semester", "integer NOT NULL"));
+            schema.add(new Pair("PRIMARY KEY", "(supervisor_id, course_id, semester)"));
+            schema.add(new Pair("FOREIGN KEY", "(supervisor_id) REFERENCES " + "Supervisor" + "(supervisor_id) ON DELETE CASCADE ON UPDATE CASCADE"));
+            schema.add(new Pair("FOREIGN KEY", "(course_id, semester) REFERENCES " + "Test" + "(course_id, semester) ON DELETE CASCADE ON UPDATE CASCADE"));
+            schema.add(new Pair("CHECK", "(semester > 0)"));
+            schema.add(new Pair("CHECK", "(course_id > 0)"));
+            schema.add(new Pair("CHECK", "(supervisor_id > 0)"));
+            createTable("Supervised", schema);
+            schema.clear();
+
+            createStudentTestedSupervisedView();
+            createStudentTestedCreditPointsView();
+
+        }catch (Exception e) {
+            System.out.print("dgdg");
+        }
     }
+
 
     public static void clearTables() {
         //clear your tables here
@@ -207,7 +217,7 @@ public class Solution {
         Connection connection = DBConnector.getConnection();
         PreparedStatement pstmt = null;
         try {
-            pstmt = connection.prepareStatement("INSERT INTO " + "Test" +
+            pstmt = connection.prepareStatement("INSERT INTO Test" +
                     " VALUES (?, ?, ?, ?, ?, ?)");
             pstmt.setInt(1,test.getId());
             pstmt.setInt(2, test.getSemester());
@@ -248,7 +258,7 @@ public class Solution {
         Connection connection = DBConnector.getConnection();
         PreparedStatement pstmt = null;
         try {
-            pstmt = connection.prepareStatement("SELECT * FROM " + "Test" + " WHERE course_id = ? AND semester = ? ");
+            pstmt = connection.prepareStatement("SELECT * FROM Test WHERE course_id = ? AND semester = ? ");
             pstmt.setInt(1,testID);
             pstmt.setInt(2,semester);
 
@@ -291,7 +301,7 @@ public class Solution {
         PreparedStatement pstmt = null;
         try {
             pstmt = connection.prepareStatement(
-                    "DELETE FROM " + "Test" +
+                    "DELETE FROM Test" +
                             " WHERE course_id = ? AND semester = ?");
             pstmt.setInt(1,testID);
             pstmt.setInt(2,semester);
@@ -326,7 +336,7 @@ public class Solution {
         Connection connection = DBConnector.getConnection();
         PreparedStatement pstmt = null;
         try {
-            pstmt = connection.prepareStatement("INSERT INTO " + "Student" +
+            pstmt = connection.prepareStatement("INSERT INTO Student" +
                     " VALUES (?, ?, ?, ?)");
             pstmt.setInt(1,student.getId());
             pstmt.setString(2, student.getName());
@@ -365,7 +375,7 @@ public class Solution {
         Connection connection = DBConnector.getConnection();
         PreparedStatement pstmt = null;
         try {
-            pstmt = connection.prepareStatement("SELECT * FROM " + "Student" +
+            pstmt = connection.prepareStatement("SELECT * FROM Student" +
                     " WHERE student_Id = ?");
             pstmt.setInt(1,studentID);
 
@@ -406,7 +416,7 @@ public class Solution {
         PreparedStatement pstmt = null;
         try {
             pstmt = connection.prepareStatement(
-                    "DELETE FROM " + "Student" +
+                    "DELETE FROM Student" +
                             " WHERE student_id = ? ");
             pstmt.setInt(1,studentID);
 
@@ -440,7 +450,7 @@ public class Solution {
         Connection connection = DBConnector.getConnection();
         PreparedStatement pstmt = null;
         try {
-            pstmt = connection.prepareStatement("INSERT INTO " + "Supervisor" +
+            pstmt = connection.prepareStatement("INSERT INTO  Supervisor" +
                     " VALUES (?, ?, ?)");
             pstmt.setInt(1,supervisor.getId());
             pstmt.setString(2, supervisor.getName());
@@ -478,7 +488,7 @@ public class Solution {
         Connection connection = DBConnector.getConnection();
         PreparedStatement pstmt = null;
         try {
-            pstmt = connection.prepareStatement("SELECT * FROM " + "Supervisor" +
+            pstmt = connection.prepareStatement("SELECT * FROM  Supervisor" +
                     " WHERE supervisor_Id = ?");
             pstmt.setInt(1,supervisorID);
 
@@ -518,7 +528,7 @@ public class Solution {
         PreparedStatement pstmt = null;
         try {
             pstmt = connection.prepareStatement(
-                    "DELETE FROM " + "Supervisor" +
+                    "DELETE FROM Supervisor" +
                             " WHERE supervisor_id = ? ");
             pstmt.setInt(1,supervisorID);
 
@@ -552,7 +562,7 @@ public class Solution {
         Connection connection = DBConnector.getConnection();
         PreparedStatement pstmt = null;
         try {
-            pstmt = connection.prepareStatement("INSERT INTO " + "Tested" +
+            pstmt = connection.prepareStatement("INSERT INTO Tested" +
                     " VALUES (?, ?, ?)");
             pstmt.setInt(1,studentID);
             pstmt.setInt(2, testID);
@@ -592,7 +602,7 @@ public class Solution {
         PreparedStatement pstmt = null;
         try {
             pstmt = connection.prepareStatement(
-                    "DELETE FROM " + "Tested" +
+                    "DELETE FROM Tested" +
                             " WHERE student_id = ? AND course_id = ? AND semester = ?");
             pstmt.setInt(1,studentID);
             pstmt.setInt(2,testID);
@@ -628,7 +638,7 @@ public class Solution {
         Connection connection = DBConnector.getConnection();
         PreparedStatement pstmt = null;
         try {
-            pstmt = connection.prepareStatement("INSERT INTO " + "Supervised" +
+            pstmt = connection.prepareStatement("INSERT INTO Supervised" +
                     " VALUES (?, ?, ?)");
             pstmt.setInt(1,supervisorID);
             pstmt.setInt(2, testID);
@@ -668,7 +678,7 @@ public class Solution {
         PreparedStatement pstmt = null;
         try {
             pstmt = connection.prepareStatement(
-                    "DELETE FROM " + "Supervised" +
+                    "DELETE FROM Supervised" +
                             " WHERE supervisor_id = ? AND course_id = ? AND semester = ?");
             pstmt.setInt(1,supervisorID);
             pstmt.setInt(2,testID);
@@ -705,27 +715,225 @@ public class Solution {
     }
 
     public static Integer getWage(Integer supervisorID) {
-        return 0;
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement(" SELECT SUM(salary) FROM Supervised INNER JOIN Supervisor" +
+                    " WHERE supervisor_id == ?");
+            pstmt.setInt(1,supervisorID);
+
+
+            ResultSet results = pstmt.executeQuery();
+            if(results.next()) {
+                Integer s = results.getInt(1);
+                results.close();
+                return s;
+            }
+            results.close();
+            return 0;
+        } catch (SQLException e) {
+            //e.printStackTrace();
+            return 0;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
     }
 
     public static ArrayList<Integer> supervisorOverseeStudent() {
-        return new ArrayList<Integer>();
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("SELECT student_id\n" +
+                    "FROM\n" +
+                    "   (SELECT student_id, supervisor_id, count(*) AS student_id_supervised\n" +
+                    "    FROM StudentTestedSupervised\n" +
+                    "    GROUP BY student_id, supervisor_id) as C\n" +
+                    "WHERE student_id_supervised > 1\n" +
+                    "ORDER BY student_id DESC\n");
+
+            ResultSet results = pstmt.executeQuery();
+            ArrayList<Integer> student_ids_more_than_once = new ArrayList<>();
+            while(results.next())
+                student_ids_more_than_once.add(results.getInt(1));
+
+            results.close();
+            return student_ids_more_than_once;
+        } catch (SQLException e) {
+            //e.printStackTrace();
+            return new ArrayList<>();
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
     }
 
     public static ArrayList<Integer> testsThisSemester(Integer semester) {
-        return new ArrayList<Integer>();
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("SELECT DISTINCT course_id\n" +
+                    "FROM Test" + "\n" +
+                    "WHERE Test.semester == ?)\n" +
+                    "ORDER BY course_id DESC\n" +
+                    "LIMIT 5");
+            pstmt.setInt(1,semester);
+
+            ResultSet results = pstmt.executeQuery();
+            ArrayList<Integer> testsThisSemester = new ArrayList<>();
+            while(results.next())
+                testsThisSemester.add(results.getInt(1));
+
+            results.close();
+            return testsThisSemester;
+        } catch (SQLException e) {
+            //e.printStackTrace();
+            return new ArrayList<>();
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
     }
 
     public static Boolean studentHalfWayThere(Integer studentID) {
-        return true;
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+
+            pstmt = connection.prepareStatement(" SELECT student_id, faculty FROM Student" +
+                    " WHERE student_id = ? AND Student.credit_points >=" +
+                    "(SELECT Points/2 FROM CreditPoints WHERE Student.faculty = CreditPoints.Faculty)");
+            pstmt.setInt(1,studentID);
+
+            ResultSet results = pstmt.executeQuery();
+            if(results.next()) {
+                results.close();
+                return true;
+            }
+            results.close();
+            return false;
+        } catch (SQLException e) {
+            //e.printStackTrace();
+            return false;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
     }
 
     public static Integer studentCreditPoints(Integer studentID) {
-        return 0;
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement(" SELECT SUM(StudentTestedCreditPoints.credit_points)" +
+                    " + (SELECT S.credit_points \n" +
+                    "        FROM Student AS S\n" +
+                    "        WHERE S.student_id = ?\n" +
+                    "       ) AS student_points" +
+                    " FROM StudentTestedCreditPoints" +
+                    " WHERE StudentTestedCreditPoints.student_id = ?");
+            pstmt.setInt(1,studentID);
+            pstmt.setInt(2,studentID);
+
+            ResultSet results = pstmt.executeQuery();
+            if(results.next()) {
+                Integer s = results.getInt(1);
+                results.close();
+                return s;
+            }
+            results.close();
+            return 0;
+        } catch (SQLException e) {
+            //e.printStackTrace();
+            return 0;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
     }
 
     public static Integer getMostPopularTest(String faculty) {
-        return 0;
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("SELECT course_id\n" +
+                    "FROM\n" +
+                        "(SELECT DISTINCT student_id, course_id, COUNT(*) AS student_id_count\n" +
+                        "FROM StudentTestedCreditPoints\n" +
+                        "WHERE faculty = ?\n" +
+                        "GROUP BY student_id, course_id) AS C\n" +
+                    "ORDER BY student_id_count DESC\n" +
+                    "LIMIT 1");
+            pstmt.setString(1,faculty);
+            ResultSet results = pstmt.executeQuery();
+            if(results.next()) {
+                Integer mostPopularTest = results.getInt(1);
+                results.close();
+                return mostPopularTest;
+            }
+            results.close();
+            return 0;
+        } catch (SQLException e) {
+            //e.printStackTrace();
+            return null;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
     }
 
     public static ArrayList<Integer> getConflictingTests() {
@@ -739,5 +947,71 @@ public class Solution {
     public static ArrayList<Integer> getCloseStudents(Integer studentID) {
         return new ArrayList<Integer>();
     }
+
+    private static void createStudentTestedSupervisedView() {
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+
+        try {
+            StringBuilder sb = new StringBuilder();
+            sb.append("CREATE OR REPLACE VIEW StudentTestedSupervised AS\n" +
+                    "(\n" +
+                    "    SELECT Tested.student_id, Supervised.supervisor_id," +
+                    "    Supervised.course_Id, Supervised.semester\n" +
+                    "    FROM Tested, Supervised\n" +
+                    "    WHERE Tested.course_Id = Supervised.course_Id\n" +
+                    "    AND Tested.semester = Supervised.semester\n" +
+                    ")");
+            pstmt = connection.prepareStatement(sb.toString());
+            pstmt.execute();
+        } catch (SQLException e) {
+//            e.printStackTrace();
+        } finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+//                e.printStackTrace();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+//                e.printStackTrace();
+            }
+        }
+    }
+
+    private static void createStudentTestedCreditPointsView() {
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+
+        try {
+            StringBuilder sb = new StringBuilder();
+            sb.append("CREATE OR REPLACE VIEW StudentTestedCreditPoints AS\n" +
+                    "(\n" +
+                    "    SELECT Tested.student_id, Tested.course_id," +
+                    "    Tested.semester, Test.credit_points, Student.faculty \n" +
+                    "    FROM Tested, Test, Student\n" +
+                    "    WHERE Tested.course_Id = Test.course_Id\n" +
+                    "    AND Tested.semester = Test.semester\n" +
+                    "    AND Student.student_id = Tested.student_id\n" +
+                    ")");
+            pstmt = connection.prepareStatement(sb.toString());
+            pstmt.execute();
+        } catch (SQLException e) {
+//            e.printStackTrace();
+        } finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+//                e.printStackTrace();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+//                e.printStackTrace();
+            }
+        }
+    }
 }
+
 

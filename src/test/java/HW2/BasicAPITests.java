@@ -37,11 +37,12 @@ public class BasicAPITests extends AbstractTest {
 
         res = Solution.studentAttendTest(1,  s.getId(), s.getSemester());
         assertEquals(ReturnValue.NOT_EXISTS, res);
+
+
     }
 
     @org.junit.Test
     public void studentGraduateTest() {
-
         ReturnValue res;
         Test s = new Test();
         s.setId(1);
@@ -51,8 +52,40 @@ public class BasicAPITests extends AbstractTest {
         s.setTime(1);
         s.setCreditPoints(3);
 
+        Test s2 = new Test();
+        s2.setId(2);
+        s2.setSemester(1);
+        s2.setRoom(233);
+        s2.setDay(1);
+        s2.setTime(1);
+        s2.setCreditPoints(3);
+
+        Test s3 = new Test();
+        s3.setId(2);
+        s3.setSemester(3);
+        s3.setRoom(233);
+        s3.setDay(2);
+        s3.setTime(1);
+        s3.setCreditPoints(3);
+
+        Test s4 = new Test();
+        s4.setId(2);
+        s4.setSemester(2);
+        s4.setRoom(233);
+        s4.setDay(1);
+        s4.setTime(1);
+        s4.setCreditPoints(3);
 
         res = Solution.addTest(s);
+        assertEquals(ReturnValue.OK, res);
+
+        res = Solution.addTest(s2);
+        assertEquals(ReturnValue.OK, res);
+
+        res = Solution.addTest(s3);
+        assertEquals(ReturnValue.OK, res);
+
+        res = Solution.addTest(s4);
         assertEquals(ReturnValue.OK, res);
 
         Test s1 = new Test();
@@ -75,9 +108,18 @@ public class BasicAPITests extends AbstractTest {
 
         res = Solution.studentAttendTest(2,  s.getId(), s.getSemester());
         assertEquals(ReturnValue.OK, res);
+        res = Solution.studentAttendTest(2,  s2.getId(), s2.getSemester());
+        assertEquals(ReturnValue.OK, res);
+        res = Solution.studentAttendTest(2,  s3.getId(), s3.getSemester());
+        assertEquals(ReturnValue.OK, res);
+        res = Solution.studentAttendTest(2,  s4.getId(), s4.getSemester());
+        assertEquals(ReturnValue.OK, res);
 
         res = Solution.studentAttendTest(2,  s1.getId(), s1.getSemester());
         assertEquals(ReturnValue.OK, res);
+
+        Boolean half = Solution.studentHalfWayThere(a.getId());
+        assertEquals(Boolean.TRUE, half);
 
         Supervisor sup = new Supervisor();
         sup.setId(1);
@@ -99,6 +141,15 @@ public class BasicAPITests extends AbstractTest {
         arr = Solution.supervisorOverseeStudent();
         assertEquals(Integer.valueOf(2), arr.get(0));
         assertEquals(1, arr.size());
+
+        Integer points = Solution.studentCreditPoints(a.getId());
+        assertEquals(Integer.valueOf(132), points);
+
+        Integer test = Solution.getMostPopularTest(a.getFaculty());
+        assertEquals(Integer.valueOf(2), test);
+
+
+
 
     }
 }

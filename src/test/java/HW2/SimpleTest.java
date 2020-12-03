@@ -8,9 +8,11 @@ import static org.junit.Assert.assertEquals;
 
 public class SimpleTest extends AbstractTest{
 
+
     @org.junit.Test
     public void createTest()
     {
+
         Test test = new Test();
         test.setId(1);
         test.setSemester(1);
@@ -25,6 +27,7 @@ public class SimpleTest extends AbstractTest{
 
     @org.junit.Test
     public void deleteTest(){
+
         Test test = new Test();
         test.setId(1);
         test.setSemester(1);
