@@ -117,6 +117,15 @@ public class Solution {
             createTable("Supervised", schema);
             schema.clear();
 
+//            schema.add(new Pair("Faculty", "text NOT NULL"));
+//            schema.add(new Pair("Points", "integer NOT NULL"));
+//            schema.add(new Pair("PRIMARY KEY", "(Faculty)"));
+//            schema.add(new Pair("UNIQUE", "(Faculty)"));
+//            schema.add(new Pair("CHECK", "(Points >= 0)"));
+//            createTable("Credits", schema);
+//            schema.clear();
+//            addCredits();
+
             createStudentTestedSupervisedView();
             createStudentTestedCreditPointsView();
 
@@ -212,6 +221,38 @@ public class Solution {
             }
         }
     }
+
+//    private static void addCredits() {
+//        PreparedStatement pstmt = null;
+//        Connection connection = DBConnector.getConnection();
+//        try {
+//        pstmt = connection.prepareStatement("INSERT INTO CreditPoints(Faculty,Points) VALUES (?, ?), (?, ?), (?, ?);");
+//        pstmt.setString(1, "CS");
+//        pstmt.setInt(2, 120);
+//        pstmt.setString(3, "EE");
+//        pstmt.setInt(4, 160);
+//        pstmt.setString(5, "MATH");
+//        pstmt.setInt(6, 115);
+//        pstmt.execute();
+//        } catch (SQLException e) {
+//            //e.printStackTrace();
+//            return;
+//        }
+//        finally {
+//            try {
+//                pstmt.close();
+//            } catch (SQLException e) {
+//                //e.printStackTrace()();
+////                return ERROR;
+//            }
+//            try {
+//                connection.close();
+//            } catch (SQLException e) {
+//                //e.printStackTrace()();
+////                return ERROR;
+//            }
+//        }
+//    }
 
     public static ReturnValue addTest(Test test) {
         Connection connection = DBConnector.getConnection();
@@ -937,15 +978,129 @@ public class Solution {
     }
 
     public static ArrayList<Integer> getConflictingTests() {
-        return new ArrayList<Integer>();
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("SELECT DISTINCT CJ.course_id1\n" +
+                    "FROM (SELECT t1.course_id as course_id1, t1.semester, t1.day, t1.time, t2.course_id as course_id2, t2.semester, t2.day, t2.time\n" +
+                    "      FROM Test AS t1 CROSS JOIN Test AS t2\n" +
+                    "      WHERE t1.course_id <> t2.course_id AND t1.semester = t2.semester\n" +
+                    "      AND t1.day = t2.day AND t1.time = t2.time ) AS CJ\n" +
+                    "ORDER BY CJ.course_id1 DESC\n");
+
+            ResultSet results = pstmt.executeQuery();
+            ArrayList<Integer> conflictingTests = new ArrayList<>();
+            while(results.next())
+                conflictingTests.add(results.getInt(1));
+
+            results.close();
+            return conflictingTests;
+        } catch (SQLException e) {
+            //e.printStackTrace();
+            return new ArrayList<>();
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
     }
 
+    // NOT GOOD NEED REFACTORING
     public static ArrayList<Integer> graduateStudents() {
-        return new ArrayList<Integer>();
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = connection.prepareStatement("SELECT DISTINCT student_id\n" +
+                    "FROM " +
+                    "(SELECT student_ids_and_points.student_id, student_ids_and_points.faculty, SUM(student_ids_and_points.credit_points)\n" +
+                    "                    + (SELECT S.credit_points \n" +
+                    "                            FROM Student AS S\n" +
+                    "                          ) AS student_points" +
+                    "                     FROM StudentTestedCreditPoints AS student_ids_and_points) AS student_ids \n" +
+                    "WHERE student_ids_and_points.faculty = CreditPoints.Faculty AND student_points >= CreditPoints.Points\n" +
+                    "ORDER BY student_id DESC\n" +
+                    "LIMIT 5");
+
+            ResultSet results = pstmt.executeQuery();
+            ArrayList<Integer> graduateStudents = new ArrayList<>();
+            while(results.next())
+                graduateStudents.add(results.getInt(1));
+
+            results.close();
+            return graduateStudents;
+        } catch (SQLException e) {
+            //e.printStackTrace();
+            return new ArrayList<>();
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
     }
 
     public static ArrayList<Integer> getCloseStudents(Integer studentID) {
-        return new ArrayList<Integer>();
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try{
+        pstmt = connection.prepareStatement("SELECT student_id\n" +
+                "FROM\n" +
+                "   (SELECT student_id, Count(student_id) AS shared_tests\n" +
+                "    FROM Tested\n" +
+                "    WHERE course_id IN\n" +
+                "       (SELECT course_id\n" +
+                "        FROM Tested\n" +
+                "        WHERE student_id = ?) AND student_id <> ?\n" +
+                "    GROUP BY student_id\n" +
+                "    ORDER BY shared_tests DESC, student_id\n" +
+                "    ) AS ST\n" +
+                "WHERE shared_tests >= (SELECT Count(student_id)\n" +
+                "            FROM Tested\n" +
+                "            WHERE student_id = ?)/2.0\n" +
+                "ORDER BY student_id\n" +
+                "LIMIT 10");
+        pstmt.setInt(1,studentID);
+        pstmt.setInt(2,studentID);
+        pstmt.setInt(3,studentID);
+
+        ResultSet results = pstmt.executeQuery();
+        ArrayList<Integer> closeStudents = new ArrayList<>();
+        while(results.next())
+            closeStudents.add(results.getInt(1));
+        results.close();
+        return closeStudents;
+
+    } catch (SQLException e) {
+        //e.printStackTrace();
+        return new ArrayList<>();
+    }
+        finally {
+        try {
+            pstmt.close();
+        } catch (SQLException e) {
+            //e.printStackTrace()();
+        }
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            //e.printStackTrace()();
+        }
+    }
     }
 
     private static void createStudentTestedSupervisedView() {
