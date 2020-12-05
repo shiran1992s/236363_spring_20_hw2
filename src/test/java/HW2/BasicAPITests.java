@@ -151,7 +151,16 @@ public class BasicAPITests extends AbstractTest {
         sup.setName("");
         sup.setSalary(30);
 
+        Supervisor sup2 = new Supervisor();
+        sup2.setId(2);
+        sup2.setName("");
+        sup2.setSalary(20);
+
         res = Solution.addSupervisor(sup);
+        assertEquals(ReturnValue.OK, res);
+
+
+        res = Solution.addSupervisor(sup2);
         assertEquals(ReturnValue.OK, res);
 
         res = Solution.supervisorOverseeTest(1,  s.getId(), s.getSemester());
@@ -163,15 +172,41 @@ public class BasicAPITests extends AbstractTest {
         res = Solution.supervisorOverseeTest(1,  s1.getId(), s1.getSemester());
         assertEquals(ReturnValue.OK, res);
 
-        arr = Solution.supervisorOverseeStudent();
-        assertEquals(Integer.valueOf(2), arr.get(0));
-        assertEquals(1, arr.size());
+
+
+
+
+        res = Solution.supervisorOverseeTest(1,  s2.getId(), s2.getSemester());
+        assertEquals(ReturnValue.OK, res);
+
+        res = Solution.supervisorOverseeTest(1,  s3.getId(), s3.getSemester());
+        assertEquals(ReturnValue.OK, res);
+
+        res = Solution.supervisorOverseeTest(1,  s4.getId(), s4.getSemester());
+        assertEquals(ReturnValue.OK, res);
+
+        res = Solution.supervisorOverseeTest(1,  s5.getId(), s5.getSemester());
+        assertEquals(ReturnValue.OK, res);
+
+        res = Solution.supervisorOverseeTest(2,  s4.getId(), s4.getSemester());
+        assertEquals(ReturnValue.OK, res);
+
+        res = Solution.supervisorOverseeTest(2,  s5.getId(), s5.getSemester());
+        assertEquals(ReturnValue.OK, res);
+
+
+//        arr = Solution.supervisorOverseeStudent();
+//        assertEquals(Integer.valueOf(2), arr.get(0));
+//        assertEquals(1, arr.size());
 
         Integer points = Solution.studentCreditPoints(a.getId());
         assertEquals(Integer.valueOf(132), points);
 
         Integer test = Solution.getMostPopularTest(a.getFaculty());
         assertEquals(Integer.valueOf(2), test);
+
+        Float average_cost = Solution.averageTestCost();
+        assertEquals(Float.valueOf(28.333334f), average_cost);
 
         arr = Solution.getCloseStudents(2);
         assertEquals(Integer.valueOf(3), arr.get(0));

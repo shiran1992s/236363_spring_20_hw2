@@ -750,9 +750,42 @@ public class Solution {
             }
         }
     }
-
+// TODO: NEED FIX THE QUERY - CALCULATION IS NOT ACCURATE
     public static Float averageTestCost() {
-        return 0.0f;
+        Connection connection = DBConnector.getConnection();
+        PreparedStatement pstmt = null;
+        try {
+
+            pstmt = connection.prepareStatement("SELECT SUM(average_tests)/COUNT(course_id) AS average\n" +
+                    "FROM" +
+                    "   (SELECT DISTINCT course_id, SUM(salary)/COUNT(s2.supervisor_id) AS average_tests\n" +
+                    "    FROM Supervised s1 INNER JOIN Supervisor s2 ON s1.supervisor_id = s2.supervisor_id\n" +
+                    "    GROUP BY course_id) as AV");
+
+            ResultSet results = pstmt.executeQuery();
+            if(results.next()) {
+                Float s = results.getFloat(1);
+                results.close();
+                return s;
+            }
+            results.close();
+            return 0.0f;
+        } catch (SQLException e) {
+            //e.printStackTrace();
+            return 0.0f;
+        }
+        finally {
+            try {
+                pstmt.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //e.printStackTrace()();
+            }
+        }
     }
 
     public static Integer getWage(Integer supervisorID) {
@@ -760,7 +793,7 @@ public class Solution {
         PreparedStatement pstmt = null;
         try {
             pstmt = connection.prepareStatement(" SELECT SUM(salary) FROM Supervised INNER JOIN Supervisor" +
-                    " WHERE supervisor_id == ?");
+                    " WHERE supervisor_id = ?");
             pstmt.setInt(1,supervisorID);
 
 
