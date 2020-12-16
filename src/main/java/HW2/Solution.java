@@ -756,11 +756,12 @@ public class Solution {
         PreparedStatement pstmt = null;
         try {
 
-            pstmt = connection.prepareStatement("SELECT SUM(average_tests)/COUNT(course_id) AS average\n" +
-                    "FROM" +
-                    "   (SELECT DISTINCT course_id, SUM(salary)/COUNT(s2.supervisor_id) AS average_tests\n" +
+            pstmt = connection.prepareStatement("SELECT Avg(coalesce(average_tests, 0)) as average\n" +
+                    "FROM test t LEFT OUTER JOIN" +
+                    "   (SELECT course_id, semester, (SUM(salary)/COUNT(s2.supervisor_id)) AS average_tests\n" +
                     "    FROM Supervised s1 INNER JOIN Supervisor s2 ON s1.supervisor_id = s2.supervisor_id\n" +
-                    "    GROUP BY course_id) as AV");
+                    "    GROUP BY course_id,semester) as AV"+ "\n" +
+                    "ON t.course_id = AV.course_id AND t.semester = AV.semester");
 
             ResultSet results = pstmt.executeQuery();
             if(results.next()) {

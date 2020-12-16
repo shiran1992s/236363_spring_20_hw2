@@ -43,6 +43,8 @@ public class BasicAPITests extends AbstractTest {
 
     @org.junit.Test
     public void studentGraduateTest() {
+        InitialState.dropInitialState();
+        InitialState.createInitialState();
         ReturnValue res;
         Test s = new Test();
         s.setId(1);
@@ -143,8 +145,8 @@ public class BasicAPITests extends AbstractTest {
         res = Solution.studentAttendTest(3,  s3.getId(), s3.getSemester());
         assertEquals(ReturnValue.OK, res);
 
-//        Boolean half = Solution.studentHalfWayThere(a.getId());
-//        assertEquals(Boolean.TRUE, half);
+        Boolean half = Solution.studentHalfWayThere(a.getId());
+        assertEquals(Boolean.TRUE, half);
 
         Supervisor sup = new Supervisor();
         sup.setId(1);
